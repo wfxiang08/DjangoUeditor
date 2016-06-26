@@ -1,88 +1,48 @@
-
-###由于近期均没有使用django的计划，所以DjangoUeditor停止更新，欢迎fork自行更改。
+# DjangoUeditor
 
 本模块帮助在Django应用中集成百度Ueditor HTML编辑器,Django是Python世界最有影响力的web框架。
 Ueditor HTML编辑器是百度开源的在线HTML编辑器,功能非常强大，像表格可以直接拖动调整单元格大小等。
 
-更新历史
-============
-###[2015-1-17]     Ver:1.9.143
-
-* Fix:当models.py中toolbars变量使用unicode字符时，编辑器无法加载的问题
-
-
-###[2014-7-8]     Ver:1.8.143
-
-* Fix:当admin使用inlines生成多实例时widget命名不正确的问题
-
-###[2014-6-27]     Ver:1.7.143
-
-* Fix:解决在admin管理后台的使用问题。
-* 增加year,month,day的上传路径变量
-
-###[2014-6-25]
-
-由于Ueditor从1.4版本开始，API发生了非常大的改动和不兼容，导致DjangoUeditor上一个版本的升级后上传功能不能用等，因此
-本次重新设计了API，后端上传的代码几乎完全重写了。
-
-* 更新到1.5.143，即版本号为1.5，使用了Ueditor 1.4.3版本。
-* 重新设计了UeditorWidget、UeditorField。
-* 新增了自定义Ueditor按钮的功能
-* 注意：本次升级与之前版本不兼容，但是在使用体验上差别不大。
-
-###[2014-6-16]
-* 更新到Ueditor 1.4.3
-
-###[2014-5-15]
-* 增加不过滤 script,style ,不自动转div为p的脚本
-* 修复在django 1.6和python2.7下的警告
-* 使用 json 代替 django 中的 simplejson
-* 用content_type 代替原来的 mime_type
-
-###[2014-5-7]
-* 更新到Ueditor 1.3.6
-* BUGfix:更新UEditor文件夹名字，避免在linux出现找不到静态文件问题
-* 添加一种样式，besttome, 希望大家喜欢
-
-###[2013-2-22]
-* 更新到Ueditor 1.2.5
-* BUGfix:更新UEditor文件夹名字，避免在linux出现找不到静态文件问题
-* BUGfix:现在支持south更新了
-* 针对csrf导致上传图片失败的问题，现在默认上传视图开启了csrf_exempt装饰
 
 ---------------------------------------
 
 使用方法
 ============
 ##1、安装方法
+`pip install DjangoUeditor`
 
-	* 方法一：将github整个源码包下载回家，在命令行运行：
-		python setup.py install
-	* 方法二：使用pip工具在命令行运行(推荐)：
-	    pip install DjangoUeditor
-   		
 ##2、在Django中安装DjangoUeditor
-     在INSTALL_APPS里面增加DjangoUeditor app，如下：
-		INSTALLED_APPS = (
+```python
+     # 在INSTALL_APPS里面增加DjangoUeditor app，如下：
+	 INSTALLED_APPS = (
 			#........
     		'DjangoUeditor',
-		)
+	 )
+```        
 ##3、配置urls
+```python
+    # 默认上传到服务本地目录
 	url(r'^ueditor/',include('DjangoUeditor.urls' )),
 
-##4、在models中的使用
+	# 也可以参考DjangoUeditor的接口来实现自己的上传方式
+```
 
+##4、在models中的使用
+```python
 	from DjangoUeditor.models import UEditorField
 	class Blog(models.Model):
     	Name=models.CharField(,max_length=100,blank=True)
-    	Content=UEditorField(u'内容	',width=600, height=300, toolbars="full", imagePath="", filePath="", upload_settings={"imageMaxSize":1204000},
-                 settings={},command=None,event_handler=myEventHander(),blank=True)
+    	Content=UEditorField(u'内容	',width=600, height=300,
+                 toolbars="full", imagePath="", filePath="",
+                 upload_settings={"imageMaxSize":1204000},
+                 settings={},command=None,event_handler=myEventHander(),
+                 blank=True)
+```
 
 *说明*
-	
- UEditorField继承自models.TextField,因此你可以直接将model里面定义的models.TextField直接改成UEditorField即可。
-定义UEditorField时除了可以直接传入models.TextFieldUEditorField提供的参数外，还可以传入UEditorField提供的额外的参数
-来控制UEditorField的外观、上传路径等。
+* UEditorField继承自models.TextField,因此你可以直接将model里面定义的models.TextField直接改成UEditorField即可。
+* 定义UEditorField时除了可以直接传入models.TextField提供的参数外，还可以传入UEditorField提供的额外的参数来控制UEditorField的外观、上传路径等。
+
 UEditorField的参数如下：
 
 * *width，height* :编辑器的宽度和高度，以像素为单位。
@@ -108,7 +68,7 @@ UEditorField的参数如下：
         imagePathFormat:"images/%(basename)s_%(datetime)s.%(extname)s",
         imageMaxSize:323232
         fileManagerListPath:"files"
-   } 
+   }
      *  upload_settings的内容就是ueditor/php/config.json里面的配置内容，因此，你可以去看config.json或者官方文档内容来决定
             该如何配置upload_settings,基本上就是用来配置上传的路径、允许上传的文件扩展名、最大上传的文件大小之类的。
      *  上面的imagePath和filePath被单独提取出来配置，原因是因为这两个参数是最常使用到的，imagePath就相当于upload_settings里面的
@@ -117,20 +77,20 @@ UEditorField的参数如下：
    则imagePath优先级更高。
      *   涂鸦文件、截图、远程抓图、图片库的xxxxPathFormat如果没有配置，默认等于imagePath.
      *   远程文件库的xxxxPathFormat如果没有配置，默认等于filePath.
-   
-   
+
 * *settings* : 字典值,配置项与ueditor/ueditor.config200.js里面的配置项一致。
 * *command* :  可以为Ueditor新增一个按钮、下拉框、对话框,例：
-
-        Description = UEditorField(u'描述', blank=True, toolbars="full", imagePath="cool/", settings={"a": 1},
-                               command=[myBtn(uiName="mybtn1", icon="d.png", title=u"1摸我", ajax_url="/ajaxcmd/"),
-                                       myCombo(uiName="myCombo3",title=u"ccc",initValue="aaa")
+```python
+Description = UEditorField(u'描述', blank=True,
+       toolbars="full", imagePath="cool/", settings={"a": 1},
+       command=[myBtn(uiName="mybtn1", icon="d.png", title=u"1摸我", ajax_url="/ajaxcmd/"),
+                myCombo(uiName="myCombo3",title=u"ccc",initValue="aaa")
                                         ])
-        
+```
 
 以上代码可以会Ueditor增加一个按钮和一个下拉框。command是一个UEditorCommand的实例列表。如果你要在Ueditor的工具栏上增加一个
 自定义按钮，方法如下：
-        
+```python
         from DjangoUeditor.commands import UEditorButtonCommand,UEditorComboCommand
         #定义自己的按钮命令类
         class myBtn(UEditorButtonCommand):
@@ -151,18 +111,19 @@ UEditorField的参数如下：
                     return u"""
                         alert("讨厌，摸哪里去了！"+xhr.responseText);//这里可以写ajax错误调用的js代码
                     """
-        
-        UEditorButtonCommand有初始化参数:
-                uiName:按钮名称
-                title:按钮提示信息
-                index:按钮显示的位置索引
-                ajax_url：单击时调用的ajax url
-                
-        UEditorComboCommand可以在Ueditor上增加一个下拉框
-        UEditorDialogCommand可以在Ueditor上增加一个对话框，一般与UEditorButtonCommand配合使用。暂未实现
-        
-* *event_handler* : 用来为Ueditor实例绑定事件侦听，比较当选择区改变时将按钮状态置为禁止。
 
+        # UEditorButtonCommand有初始化参数:
+        #        uiName:按钮名称
+        #        title:按钮提示信息
+        #        index:按钮显示的位置索引
+        #        ajax_url：单击时调用的ajax url
+        #
+        #UEditorComboCommand可以在Ueditor上增加一个下拉框
+        #UEditorDialogCommand可以在Ueditor上增加一个对话框，一般与UEditorButtonCommand配合使用。暂未实现
+
+```
+* *event_handler* : 用来为Ueditor实例绑定事件侦听，比较当选择区改变时将按钮状态置为禁止。
+```python
         from DjangoUeditor.commands import UEditorEventHandler
         class myEventHander(UEditorEventHandler):
             def on_selectionchange(self):
@@ -178,9 +139,8 @@ UEditorField的参数如下：
                     var btn=getButton("mybtn1");
                     var selRanage=id_Description.selection.getRange()
                     btn.setDisabled(selRanage.startOffset == selRanage.endOffset);
-        
                 """
-        
+```
         我们可以继承UEditorEventHandler创建自己的事件侦听类，例如上面myEventHander，然后在myEventHander中
         增加on_eventname的方法，在里面返回侦听该event的js代码。例如上例on_selectionchange,就会在前端js中
         生成id_Description.addListener('selectionchange', function () {.......});
@@ -188,6 +148,8 @@ UEditorField的参数如下：
         
 
 ##5、在表单中使用非常简单，与常规的form字段没什么差别，如下：
+
+```python
 	class TestUeditorModelForm(forms.ModelForm):
     	class Meta:
         	model=Blog
@@ -221,7 +183,7 @@ UEditorField的参数如下：
     <div class="edit-area"> 
         {{ form }} 
     </div>
-
+```
 ##6、Settings配置
       在Django的Settings可以配置以下参数：
             UEDITOR_SETTINGS={

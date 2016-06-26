@@ -1,6 +1,6 @@
 #coding:utf-8
 from importlib import import_module
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404, HttpResponseNotFound
 import settings as USettings
 import os
 import json
@@ -122,158 +122,106 @@ def get_files(root_path,cur_path, allow_types=[]):
 @csrf_exempt
 def UploadFile(request):
     """上传文件"""
-    if not request.method=="POST":
-        return  HttpResponse(json.dumps(u"{'state:'ERROR'}"),content_type="application/javascript")
-
-    state="SUCCESS"
-    action=request.GET.get("action")
-    #上传文件
-    upload_field_name={
-        "uploadfile":"fileFieldName","uploadimage":"imageFieldName",
-        "uploadscrawl":"scrawlFieldName","catchimage":"catcherFieldName",
-        "uploadvideo":"videoFieldName",
-    }
-    UploadFieldName=request.GET.get(upload_field_name[action],USettings.UEditorUploadSettings.get(action,"upfile"))
-
-    #上传涂鸦，涂鸦是采用base64编码上传的，需要单独处理
-    if action=="uploadscrawl":
-        upload_file_name="scrawl.png"
-        upload_file_size=0
-    else:
-        #取得上传的文件
-        file=request.FILES.get(UploadFieldName,None)
-        if file is None:return  HttpResponse(json.dumps(u"{'state:'ERROR'}") ,content_type="application/javascript")
-        upload_file_name=file.name
-        upload_file_size=file.size
-
-    #取得上传的文件的原始名称
-    upload_original_name,upload_original_ext=os.path.splitext(upload_file_name)
-
-    #文件类型检验
-    upload_allow_type={
-        "uploadfile":"fileAllowFiles",
-        "uploadimage":"imageAllowFiles",
-        "uploadvideo":"videoAllowFiles"
-    }
-    if upload_allow_type.has_key(action):
-        allow_type= list(request.GET.get(upload_allow_type[action],USettings.UEditorUploadSettings.get(upload_allow_type[action],"")))
-        if not upload_original_ext.lower()  in allow_type:
-            state=u"服务器不允许上传%s类型的文件。" % upload_original_ext
-
-    #大小检验
-    upload_max_size={
-        "uploadfile":"filwMaxSize",
-        "uploadimage":"imageMaxSize",
-        "uploadscrawl":"scrawlMaxSize",
-        "uploadvideo":"videoMaxSize"
-    }
-    max_size=long(request.GET.get(upload_max_size[action],USettings.UEditorUploadSettings.get(upload_max_size[action],0)))
-    if  max_size!=0:
-        from utils import FileSize
-        MF=FileSize(max_size)
-        if upload_file_size>MF.size:
-            state=u"上传文件大小不允许超过%s。" % MF.FriendValue
-
-    #检测保存路径是否存在,如果不存在则需要创建
-    upload_path_format={
-        "uploadfile":"filePathFormat",
-        "uploadimage":"imagePathFormat",
-        "uploadscrawl":"scrawlPathFormat",
-        "uploadvideo":"videoPathFormat"
-    }
-
-    path_format_var=get_path_format_vars()
-    path_format_var.update({
-        "basename":upload_original_name,
-        "extname":upload_original_ext[1:],
-        "filename":upload_file_name,
-    })
-    #取得输出文件的路径
-    OutputPathFormat,OutputPath,OutputFile=get_output_path(request,upload_path_format[action],path_format_var)
-
-    #所有检测完成后写入文件
-    if state=="SUCCESS":
-        if action=="uploadscrawl":
-            state=save_scrawl_file(request, os.path.join(OutputPath,OutputFile))
-        else:
-            #保存到文件中，如果保存错误，需要返回ERROR
-            upload_module_name = USettings.UEditorUploadSettings.get("upload_module", None)
-            if upload_module_name:
-                mod = import_module(upload_module_name)
-                state = mod.upload(file, OutputPathFormat)
-            else:
-                state = save_upload_file(file, os.path.join(OutputPath, OutputFile))
-
-    #返回数据
-    return_info = {
-        'url': urllib.basejoin(USettings.gSettings.MEDIA_URL , OutputPathFormat) ,                # 保存后的文件名称
-        'original': upload_file_name,                  #原始文件名
-        'type': upload_original_ext,
-        'state': state,                         #上传状态，成功时返回SUCCESS,其他任何值将原样返回至图片上传框中
-        'size': upload_file_size
-    }
-    return HttpResponse(json.dumps(return_info,ensure_ascii=False),content_type="application/javascript")
+    # if not request.method=="POST":
+    #     return  HttpResponse(json.dumps(u"{'state:'ERROR'}"),content_type="application/javascript")
+    #
+    # state="SUCCESS"
+    # action=request.GET.get("action")
+    # #上传文件
+    # upload_field_name={
+    #     "uploadfile":"fileFieldName","uploadimage":"imageFieldName",
+    #     "uploadscrawl":"scrawlFieldName","catchimage":"catcherFieldName",
+    #     "uploadvideo":"videoFieldName",
+    # }
+    # UploadFieldName=request.GET.get(upload_field_name[action],USettings.UEditorUploadSettings.get(action,"upfile"))
+    #
+    # #上传涂鸦，涂鸦是采用base64编码上传的，需要单独处理
+    # if action=="uploadscrawl":
+    #     upload_file_name="scrawl.png"
+    #     upload_file_size=0
+    # else:
+    #     #取得上传的文件
+    #     file=request.FILES.get(UploadFieldName,None)
+    #     if file is None:return  HttpResponse(json.dumps(u"{'state:'ERROR'}") ,content_type="application/javascript")
+    #     upload_file_name=file.name
+    #     upload_file_size=file.size
+    #
+    # #取得上传的文件的原始名称
+    # upload_original_name,upload_original_ext=os.path.splitext(upload_file_name)
+    #
+    # #文件类型检验
+    # upload_allow_type={
+    #     "uploadfile":"fileAllowFiles",
+    #     "uploadimage":"imageAllowFiles",
+    #     "uploadvideo":"videoAllowFiles"
+    # }
+    # if upload_allow_type.has_key(action):
+    #     allow_type= list(request.GET.get(upload_allow_type[action],USettings.UEditorUploadSettings.get(upload_allow_type[action],"")))
+    #     if not upload_original_ext.lower()  in allow_type:
+    #         state=u"服务器不允许上传%s类型的文件。" % upload_original_ext
+    #
+    # #大小检验
+    # upload_max_size={
+    #     "uploadfile":"filwMaxSize",
+    #     "uploadimage":"imageMaxSize",
+    #     "uploadscrawl":"scrawlMaxSize",
+    #     "uploadvideo":"videoMaxSize"
+    # }
+    # max_size=long(request.GET.get(upload_max_size[action],USettings.UEditorUploadSettings.get(upload_max_size[action],0)))
+    # if  max_size!=0:
+    #     from utils import FileSize
+    #     MF=FileSize(max_size)
+    #     if upload_file_size>MF.size:
+    #         state=u"上传文件大小不允许超过%s。" % MF.FriendValue
+    #
+    # #检测保存路径是否存在,如果不存在则需要创建
+    # upload_path_format={
+    #     "uploadfile":"filePathFormat",
+    #     "uploadimage":"imagePathFormat",
+    #     "uploadscrawl":"scrawlPathFormat",
+    #     "uploadvideo":"videoPathFormat"
+    # }
+    #
+    # path_format_var=get_path_format_vars()
+    # path_format_var.update({
+    #     "basename":upload_original_name,
+    #     "extname":upload_original_ext[1:],
+    #     "filename":upload_file_name,
+    # })
+    # #取得输出文件的路径
+    # OutputPathFormat,OutputPath,OutputFile=get_output_path(request,upload_path_format[action],path_format_var)
+    #
+    # #所有检测完成后写入文件
+    # if state=="SUCCESS":
+    #     if action=="uploadscrawl":
+    #         state=save_scrawl_file(request, os.path.join(OutputPath,OutputFile))
+    #     else:
+    #         #保存到文件中，如果保存错误，需要返回ERROR
+    #         upload_module_name = USettings.UEditorUploadSettings.get("upload_module", None)
+    #         if upload_module_name:
+    #             mod = import_module(upload_module_name)
+    #             state = mod.upload(file, OutputPathFormat)
+    #         else:
+    #             state = save_upload_file(file, os.path.join(OutputPath, OutputFile))
+    #
+    # #返回数据
+    # return_info = {
+    #     'url': urllib.basejoin(USettings.gSettings.MEDIA_URL , OutputPathFormat) ,                # 保存后的文件名称
+    #     'original': upload_file_name,                  #原始文件名
+    #     'type': upload_original_ext,
+    #     'state': state,                         #上传状态，成功时返回SUCCESS,其他任何值将原样返回至图片上传框中
+    #     'size': upload_file_size
+    # }
+    # return HttpResponse(json.dumps(return_info,ensure_ascii=False),content_type="application/javascript")
+    return HttpResponseNotFound()
 
 @csrf_exempt
 def catcher_remote_image(request):
     """远程抓图，当catchRemoteImageEnable:true时，
         如果前端插入图片地址与当前web不在同一个域，则由本函数从远程下载图片到本地
     """
-    if not request.method=="POST":
-        return  HttpResponse(json.dumps( u"{'state:'ERROR'}"),content_type="application/javascript")
 
-    state="SUCCESS"
-
-    allow_type= list(request.GET.get("catcherAllowFiles",USettings.UEditorUploadSettings.get("catcherAllowFiles","")))
-    max_size=long(request.GET.get("catcherMaxSize",USettings.UEditorUploadSettings.get("catcherMaxSize",0)))
-
-    remote_urls=request.POST.getlist("source[]",[])
-    catcher_infos=[]
-    path_format_var=get_path_format_vars()
-
-    for remote_url in remote_urls:
-        #取得上传的文件的原始名称
-        remote_file_name=os.path.basename(remote_url)
-        remote_original_name,remote_original_ext=os.path.splitext(remote_file_name)
-        #文件类型检验
-        if remote_original_ext  in allow_type:
-            path_format_var.update({
-                "basename":remote_original_name,
-                "extname":remote_original_ext[1:],
-                "filename":remote_original_name
-            })
-            #计算保存的文件名
-            o_path_format,o_path,o_file=get_output_path(request,"catcherPathFormat",path_format_var)
-            o_filename=os.path.join(o_path,o_file).replace("\\","/")
-            #读取远程图片文件
-            try:
-                remote_image=urllib.urlopen(remote_url)
-                 #将抓取到的文件写入文件
-                try:
-                    f = open(o_filename, 'wb')
-                    f.write(remote_image.read())
-                    f.close()
-                    state="SUCCESS"
-                except Exception,E:
-                    state=u"写入抓取图片文件错误:%s" % E.message
-            except Exception,E:
-                state=u"抓取图片错误：%s" % E.message
-
-            catcher_infos.append({
-                "state":state,
-                "url":urllib.basejoin(USettings.gSettings.MEDIA_URL , o_path_format),
-                "size":os.path.getsize(o_filename),
-                "title":os.path.basename(o_file),
-                "original":remote_file_name,
-                "source":remote_url
-            })
-
-    return_info={
-        "state":"SUCCESS" if len(catcher_infos) >0 else "ERROR",
-        "list":catcher_infos
-    }
-
-    return HttpResponse(json.dumps(return_info,ensure_ascii=False),content_type="application/javascript")
+    return HttpResponseNotFound()
 
 
 def get_output_path(request,path_format,path_format_var):

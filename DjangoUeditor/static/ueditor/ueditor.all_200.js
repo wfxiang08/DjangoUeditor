@@ -23432,218 +23432,6 @@ UE.commands['insertparagraph'] = {
 };
 
 
-
-// plugins/webapp.js
-/**
- * 百度应用
- * @file
- * @since 1.2.6.1
- */
-
-
-/**
- * 插入百度应用
- * @command webapp
- * @method execCommand
- * @remind 需要百度APPKey
- * @remind 百度应用主页： <a href="http://app.baidu.com/" target="_blank">http://app.baidu.com/</a>
- * @param { Object } appOptions 应用所需的参数项， 支持的key有： title=>应用标题， width=>应用容器宽度，
- * height=>应用容器高度，logo=>应用logo，url=>应用地址
- * @example
- * ```javascript
- * //editor是编辑器实例
- * //在编辑器里插入一个“植物大战僵尸”的APP
- * editor.execCommand( 'webapp' , {
- *     title: '植物大战僵尸',
- *     width: 560,
- *     height: 465,
- *     logo: '应用展示的图片',
- *     url: '百度应用的地址'
- * } );
- * ```
- */
-
-//UE.plugins['webapp'] = function () {
-//    var me = this;
-//    function createInsertStr( obj, toIframe, addParagraph ) {
-//        return !toIframe ?
-//                (addParagraph ? '<p>' : '') + '<img title="'+obj.title+'" width="' + obj.width + '" height="' + obj.height + '"' +
-//                        ' src="' + me.options.UEDITOR_HOME_URL + 'themes/default/images/spacer.gif" style="background:url(' + obj.logo+') no-repeat center center; border:1px solid gray;" class="edui-faked-webapp" _url="' + obj.url + '" />' +
-//                        (addParagraph ? '</p>' : '')
-//                :
-//                '<iframe class="edui-faked-webapp" title="'+obj.title+'" width="' + obj.width + '" height="' + obj.height + '"  scrolling="no" frameborder="0" src="' + obj.url + '" logo_url = '+obj.logo+'></iframe>';
-//    }
-//
-//    function switchImgAndIframe( img2frame ) {
-//        var tmpdiv,
-//                nodes = domUtils.getElementsByTagName( me.document, !img2frame ? "iframe" : "img" );
-//        for ( var i = 0, node; node = nodes[i++]; ) {
-//            if ( node.className != "edui-faked-webapp" ){
-//                continue;
-//            }
-//            tmpdiv = me.document.createElement( "div" );
-//            tmpdiv.innerHTML = createInsertStr( img2frame ? {url:node.getAttribute( "_url" ), width:node.width, height:node.height,title:node.title,logo:node.style.backgroundImage.replace("url(","").replace(")","")} : {url:node.getAttribute( "src", 2 ),title:node.title, width:node.width, height:node.height,logo:node.getAttribute("logo_url")}, img2frame ? true : false,false );
-//            node.parentNode.replaceChild( tmpdiv.firstChild, node );
-//        }
-//    }
-//
-//    me.addListener( "beforegetcontent", function () {
-//        switchImgAndIframe( true );
-//    } );
-//    me.addListener( 'aftersetcontent', function () {
-//        switchImgAndIframe( false );
-//    } );
-//    me.addListener( 'aftergetcontent', function ( cmdName ) {
-//        if ( cmdName == 'aftergetcontent' && me.queryCommandState( 'source' ) ){
-//            return;
-//        }
-//        switchImgAndIframe( false );
-//    } );
-//
-//    me.commands['webapp'] = {
-//        execCommand:function ( cmd, obj ) {
-//            me.execCommand( "inserthtml", createInsertStr( obj, false,true ) );
-//        }
-//    };
-//};
-
-UE.plugin.register('webapp', function (){
-    var me = this;
-    function createInsertStr(obj,toEmbed){
-        return  !toEmbed ?
-            '<img title="'+obj.title+'" width="' + obj.width + '" height="' + obj.height + '"' +
-                ' src="' + me.options.UEDITOR_HOME_URL + 'themes/default/images/spacer.gif" _logo_url="'+obj.logo+'" style="background:url(' + obj.logo
-                +') no-repeat center center; border:1px solid gray;" class="edui-faked-webapp" _url="' + obj.url + '" ' +
-                (obj.align && !obj.cssfloat? 'align="' + obj.align + '"' : '') +
-                (obj.cssfloat ? 'style="float:' + obj.cssfloat + '"' : '') +
-                '/>'
-            :
-            '<iframe class="edui-faked-webapp" title="'+obj.title+'" ' +
-                (obj.align && !obj.cssfloat? 'align="' + obj.align + '"' : '') +
-                (obj.cssfloat ? 'style="float:' + obj.cssfloat + '"' : '') +
-                'width="' + obj.width + '" height="' + obj.height + '"  scrolling="no" frameborder="0" src="' + obj.url + '" logo_url = "'+obj.logo+'"></iframe>'
-
-    }
-    return {
-        outputRule: function(root){
-            utils.each(root.getNodesByTagName('img'),function(node){
-                var html;
-                if(node.getAttr('class') == 'edui-faked-webapp'){
-                    html =  createInsertStr({
-                        title:node.getAttr('title'),
-                        'width':node.getAttr('width'),
-                        'height':node.getAttr('height'),
-                        'align':node.getAttr('align'),
-                        'cssfloat':node.getStyle('float'),
-                        'url':node.getAttr("_url"),
-                        'logo':node.getAttr('_logo_url')
-                    },true);
-                    var embed = UE.uNode.createElement(html);
-                    node.parentNode.replaceChild(embed,node);
-                }
-            })
-        },
-        inputRule:function(root){
-            utils.each(root.getNodesByTagName('iframe'),function(node){
-                if(node.getAttr('class') == 'edui-faked-webapp'){
-                    var img = UE.uNode.createElement(createInsertStr({
-                        title:node.getAttr('title'),
-                        'width':node.getAttr('width'),
-                        'height':node.getAttr('height'),
-                        'align':node.getAttr('align'),
-                        'cssfloat':node.getStyle('float'),
-                        'url':node.getAttr("src"),
-                        'logo':node.getAttr('logo_url')
-                    }));
-                    node.parentNode.replaceChild(img,node);
-                }
-            })
-
-        },
-        commands:{
-            /**
-             * 插入百度应用
-             * @command webapp
-             * @method execCommand
-             * @remind 需要百度APPKey
-             * @remind 百度应用主页： <a href="http://app.baidu.com/" target="_blank">http://app.baidu.com/</a>
-             * @param { Object } appOptions 应用所需的参数项， 支持的key有： title=>应用标题， width=>应用容器宽度，
-             * height=>应用容器高度，logo=>应用logo，url=>应用地址
-             * @example
-             * ```javascript
-             * //editor是编辑器实例
-             * //在编辑器里插入一个“植物大战僵尸”的APP
-             * editor.execCommand( 'webapp' , {
-             *     title: '植物大战僵尸',
-             *     width: 560,
-             *     height: 465,
-             *     logo: '应用展示的图片',
-             *     url: '百度应用的地址'
-             * } );
-             * ```
-             */
-            'webapp':{
-                execCommand:function (cmd, obj) {
-
-                    var me = this,
-                        str = createInsertStr(utils.extend(obj,{
-                            align:'none'
-                        }), false);
-                    me.execCommand("inserthtml",str);
-                },
-                queryCommandState:function () {
-                    var me = this,
-                        img = me.selection.getRange().getClosedNode(),
-                        flag = img && (img.className == "edui-faked-webapp");
-                    return flag ? 1 : 0;
-                }
-            }
-        }
-    }
-});
-
-// plugins/template.js
-///import core
-///import plugins\inserthtml.js
-///import plugins\cleardoc.js
-///commands 模板
-///commandsName  template
-///commandsTitle  模板
-///commandsDialog  dialogs\template
-UE.plugins['template'] = function () {
-    UE.commands['template'] = {
-        execCommand:function (cmd, obj) {
-            obj.html && this.execCommand("inserthtml", obj.html);
-        }
-    };
-    this.addListener("click", function (type, evt) {
-        var el = evt.target || evt.srcElement,
-            range = this.selection.getRange();
-        var tnode = domUtils.findParent(el, function (node) {
-            if (node.className && domUtils.hasClass(node, "ue_t")) {
-                return node;
-            }
-        }, true);
-        tnode && range.selectNode(tnode).shrinkBoundary().select();
-    });
-    this.addListener("keydown", function (type, evt) {
-        var range = this.selection.getRange();
-        if (!range.collapsed) {
-            if (!evt.ctrlKey && !evt.metaKey && !evt.shiftKey && !evt.altKey) {
-                var tnode = domUtils.findParent(range.startContainer, function (node) {
-                    if (node.className && domUtils.hasClass(node, "ue_t")) {
-                        return node;
-                    }
-                }, true);
-                if (tnode) {
-                    domUtils.removeClasses(tnode, ["ue_t"]);
-                }
-            }
-        }
-    });
-};
-
-
 // plugins/music.js
 /**
  * 插入音乐命令
@@ -23760,6 +23548,7 @@ UE.plugin.register('autoupload', function (){
         };
 
         if (filetype == 'image') {
+
             loadingHtml = '<img class="loadingclass" id="' + loadingId + '" src="' +
                 me.options.themePath + me.options.theme +
                 '/images/spacer.gif" title="' + (me.getLang('autoupload.loading') || '') + '" >';
@@ -23776,21 +23565,23 @@ UE.plugin.register('autoupload', function (){
                 }
             };
         } else {
-            loadingHtml = '<p>' +
-                '<img class="loadingclass" id="' + loadingId + '" src="' +
-                me.options.themePath + me.options.theme +
-                '/images/spacer.gif" title="' + (me.getLang('autoupload.loading') || '') + '" >' +
-                '</p>';
-            successHandler = function(data) {
-                var link = urlPrefix + data.url,
-                    loader = me.document.getElementById(loadingId);
-
-                var rng = me.selection.getRange(),
-                    bk = rng.createBookmark();
-                rng.selectNode(loader).select();
-                me.execCommand('insertfile', {'url': link});
-                rng.moveToBookmark(bk).select();
-            };
+            // 其他文件不上传
+            return;
+            //loadingHtml = '<p>' +
+            //    '<img class="loadingclass" id="' + loadingId + '" src="' +
+            //    me.options.themePath + me.options.theme +
+            //    '/images/spacer.gif" title="' + (me.getLang('autoupload.loading') || '') + '" >' +
+            //    '</p>';
+            //successHandler = function(data) {
+            //    var link = urlPrefix + data.url,
+            //        loader = me.document.getElementById(loadingId);
+            //
+            //    var rng = me.selection.getRange(),
+            //        bk = rng.createBookmark();
+            //    rng.selectNode(loader).select();
+            //    me.execCommand('insertfile', {'url': link});
+            //    rng.moveToBookmark(bk).select();
+            //};
         }
 
         /* 插入loading的占位符 */
@@ -23825,6 +23616,7 @@ UE.plugin.register('autoupload', function (){
         xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         xhr.addEventListener('load', function (e) {
             try{
+                // 通过Ajax来进行处理
                 var json = (new Function("return " + utils.trim(e.target.response)))();
                 if (json.state == 'SUCCESS' && json.url) {
                     successHandler(json);
@@ -23838,9 +23630,12 @@ UE.plugin.register('autoupload', function (){
         xhr.send(fd);
     }
 
+    // 如何访问剪切板中的图片
     function getPasteImage(e){
         return e.clipboardData && e.clipboardData.items && e.clipboardData.items.length == 1 && /^image\//.test(e.clipboardData.items[0].type) ? e.clipboardData.items:null;
     }
+
+    // 访问拖放的图片
     function getDropImage(e){
         return  e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files:null;
     }
@@ -23848,10 +23643,12 @@ UE.plugin.register('autoupload', function (){
     return {
         outputRule: function(root){
             utils.each(root.getNodesByTagName('img'),function(n){
+                // 删除加载错误的image
                 if (/\b(loaderrorclass)|(bloaderrorclass)\b/.test(n.getAttr('class'))) {
                     n.parentNode.removeChild(n);
                 }
             });
+
             utils.each(root.getNodesByTagName('p'),function(n){
                 if (/\bloadpara\b/.test(n.getAttr('class'))) {
                     n.parentNode.removeChild(n);
@@ -23862,6 +23659,7 @@ UE.plugin.register('autoupload', function (){
             //插入粘贴板的图片，拖放插入图片
             'ready':function(e){
                 var me = this;
+
                 if(window.FormData && window.FileReader) {
                     domUtils.on(me.body, 'paste drop', function(e){
                         var hasImg = false,

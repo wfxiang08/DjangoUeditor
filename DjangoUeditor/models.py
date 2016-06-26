@@ -15,6 +15,8 @@ class UEditorField(models.TextField):
 
     def __init__(self, verbose_name=None, width=600, height=300, toolbars="full", imagePath="",
                  filePath="", upload_settings={}, settings={}, command=None, event_handler=None, **kwargs):
+
+        # 将db field的参数记录下来，然后在: formfield中传递给: widget
         self.ueditor_settings = locals().copy()
         kwargs["verbose_name"] = verbose_name
         del self.ueditor_settings["self"], self.ueditor_settings["kwargs"], self.ueditor_settings["verbose_name"]
@@ -24,6 +26,7 @@ class UEditorField(models.TextField):
         defaults = {'widget': UEditorWidget(attrs=self.ueditor_settings)}
         defaults.update(kwargs)
 
+        # 强制修改: widget
         if defaults['widget'] == admin_widgets.AdminTextareaWidget:
             defaults['widget'] = AdminUEditorWidget(attrs=self.ueditor_settings)
         return super(UEditorField, self).formfield(**defaults)

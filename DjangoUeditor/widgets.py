@@ -11,6 +11,9 @@ from  commands import *
 
 # 修正输入的文件路径,输入路径的标准格式：abc,不需要前后置的路径符号
 # 如果输入的路径参数是一个函数则执行，否则可以拉接受时间格式化，用来生成如file20121208.bmp的重命名格式
+#
+# 调整各种path的格式
+#
 def calc_path(OutputPath, instance=None):
     if callable(OutputPath):
         try:
@@ -26,9 +29,11 @@ def calc_path(OutputPath, instance=None):
 
     return OutputPath
 
-
-# width=600, height=300, toolbars="full", imagePath="", filePath="", upload_settings={},
-# settings={},command=None,event_handler=None
+# Widget关注的事情:
+# 1. 如何从db field等获取参数
+# 2. 如何render
+# 3. 如何处理最终的Form的数据
+#
 class UEditorWidget(forms.Textarea):
     def __init__(self, attrs=None):
 
@@ -130,9 +135,13 @@ class UEditorWidget(forms.Textarea):
             uSettings["commands"] = cmdjs
 
         uSettings["settings"] = self.ueditor_settings.copy()
+
+        # 强制覆盖了serverUrl的定义
+        # 注意: _upload_settings 和 upload_settings 的关系
         uSettings["settings"].update({
             "serverUrl": "/ueditor/controller/?%s" % urlencode(self._upload_settings)
         })
+
         # 生成事件侦听
         if self.event_handler:
             uSettings["bindEvents"] = self.event_handler.render(editor_id)
@@ -144,6 +153,10 @@ class UEditorWidget(forms.Textarea):
             'MEDIA_URL': settings.MEDIA_URL,
             'MEDIA_ROOT': settings.MEDIA_ROOT
         }
+        # 输出一段html/css/js
+        # 最终js会自动生成: <textarea name="content" id="ueditor_textarea_content" style="display: none;"></textarea>
+        # 提交数据的时候: 就不用专门实现： value_from_datadict
+        #
         return mark_safe(render_to_string('ueditor.html', context))
 
     class Media:
