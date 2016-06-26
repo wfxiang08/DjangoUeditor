@@ -160,7 +160,7 @@ class UEditorWidget(forms.Textarea):
         return mark_safe(render_to_string('ueditor.html', context))
 
     class Media:
-        js = ("ueditor/ueditor.config200.js",
+        js = ("ueditor/ueditor.config201.js",
               "ueditor/ueditor.all.min200.js")
 
 

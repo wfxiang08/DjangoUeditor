@@ -8,7 +8,7 @@ TOOLBARS_SETTINGS={
     "normal":[['source','|','undo', 'redo', '|','bold', 'italic', 'underline','removeformat', 'formatmatch','autotypeset', '|', 'forecolor', 'backcolor','|', 'link', 'unlink','|','simpleupload', 'emotion','attachment', '|','inserttable', 'deletetable', 'insertparagraphbeforetable', 'insertrow', 'deleterow', 'insertcol', 'deletecol', 'mergecells', 'mergeright', 'mergedown', 'splittocells', 'splittorows', 'splittocols']]
 }
 
-#默认的Ueditor设置，请参见ueditor.config200.js
+#默认的Ueditor设置，请参见ueditor.config201.js
 UEditorSettings={
     "toolbars":TOOLBARS_SETTINGS["normal"],
     "autoFloatEnabled":False,

@@ -78,7 +78,7 @@ UEditorField的参数如下：
      *   涂鸦文件、截图、远程抓图、图片库的xxxxPathFormat如果没有配置，默认等于imagePath.
      *   远程文件库的xxxxPathFormat如果没有配置，默认等于filePath.
 
-* *settings* : 字典值,配置项与ueditor/ueditor.config200.js里面的配置项一致。
+* *settings* : 字典值,配置项与ueditor/ueditor.config201.js里面的配置项一致。
 * *command* :  可以为Ueditor新增一个按钮、下拉框、对话框,例：
 ```python
 Description = UEditorField(u'描述', blank=True,
@@ -188,7 +188,7 @@ Description = UEditorField(u'描述', blank=True,
       在Django的Settings可以配置以下参数：
             UEDITOR_SETTINGS={
                 "config":{
-                   #这里放ueditor.config200.js里面的配置项.......
+                   #这里放ueditor.config201.js里面的配置项.......
                 },
                 "upload":{
                    #这里放php/config.json里面的配置项.......
