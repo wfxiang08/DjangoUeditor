@@ -12,11 +12,11 @@ DjangoUeditor/views.py
 DjangoUeditor/widgets.py
 DjangoUeditor/static/ueditor/.DS_Store
 DjangoUeditor/static/ueditor/index.html
-DjangoUeditor/static/ueditor/ueditor.all.js
-DjangoUeditor/static/ueditor/ueditor.all.min.js
-DjangoUeditor/static/ueditor/ueditor.config.js
-DjangoUeditor/static/ueditor/ueditor.parse.js
-DjangoUeditor/static/ueditor/ueditor.parse.min.js
+DjangoUeditor/static/ueditor/ueditor.all.min200.js
+DjangoUeditor/static/ueditor/ueditor.all_200.js
+DjangoUeditor/static/ueditor/ueditor.config200.js
+DjangoUeditor/static/ueditor/ueditor.parse.min200.js
+DjangoUeditor/static/ueditor/ueditor.parse200.js
 DjangoUeditor/static/ueditor/dialogs/internal.js
 DjangoUeditor/static/ueditor/dialogs/anchor/anchor.html
 DjangoUeditor/static/ueditor/dialogs/attachment/attachment.css
